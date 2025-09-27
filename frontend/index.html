@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Petron — The Arbiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script defer type="module" src="app.js"></script>
+</head>
+<body>
+  <main class="container">
+    <header class="page-header">
+      <h1>Petron reports all your global ratings for you 🌍</h1>
+      <p class="lead">Paste an App Store URL or numeric app ID. Petron sweeps Apple storefronts to surface per-country averages, rating counts, and recent review narratives at a glance.</p>
+    </header>
+
+    <section class="card">
+      <form id="scan-form" class="form-grid">
+        <label class="form-field" for="app-input">
+          <span class="form-label">App Store URL or App ID</span>
+          <input id="app-input" type="text" placeholder="https://apps.apple.com/us/app/... or 310633997" required>
+        </label>
+
+        <label class="form-field" for="max-reviews">
+          <span class="form-label">Max reviews per country</span>
+          <input id="max-reviews" type="number" min="0" max="1000" value="50">
+          <span class="form-help">Fetch up to 1,000 recent reviews (Apple usually caps the feed)</span>
+        </label>
+
+        <details class="advanced">
+          <summary>Advanced options</summary>
+          <div class="advanced-grid">
+            <label class="form-field" for="concurrency">
+              <span class="form-label">Network concurrency</span>
+              <input id="concurrency" type="range" min="2" max="24" value="12">
+              <span class="form-help"><span id="concurrency-value">12</span> simultaneous requests</span>
+            </label>
+
+            <fieldset class="form-field">
+              <span class="form-label">Country list source</span>
+              <label class="radio-option">
+                <input type="radio" name="country-mode" value="auto" checked>
+                Auto-discover (fallback if blocked)
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="country-mode" value="fallback">
+                Fallback list only
+              </label>
+              <span class="form-help">Auto-discovery may fail in the browser; we will use a built-in list if so.</span>
+            </fieldset>
+          </div>
+        </details>
+
+        <button class="primary" type="submit" id="scan-button">Scan ratings &amp; reviews</button>
+      </form>
+
+      <div id="status" class="status" role="status"></div>
+      <div id="progress-wrapper" class="progress" hidden>
+        <progress id="progress" value="0" max="1"></progress>
+        <span id="progress-text"></span>
+      </div>
+    </section>
+
+    <section id="results" class="results" hidden>
+      <section class="card" id="map-section">
+        <h2>Country coverage map</h2>
+        <p class="muted">2D map — grey means no storefront data, green (5★) through red (1★) shows the app’s average rating for that storefront. Filtered storefronts stay fully opaque.</p>
+        <div id="map" class="map-container">
+          <div class="muted">Loading map…</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Country ratings summary</h2>
+        <div class="filters" id="filters" hidden>
+          <div class="filter-field">
+            <label for="min-rating">Min average rating (app)
+              <span class="filter-value" id="min-rating-display">0.0+</span>
+            </label>
+            <input type="range" id="min-rating" min="0" max="5" step="0.1" value="0">
+          </div>
+          <div class="filter-field">
+            <label for="min-count">Min rating count</label>
+            <input type="number" id="min-count" min="0" step="100" value="0">
+          </div>
+          <div class="filter-field checkbox">
+            <label>
+              <input type="checkbox" id="only-reviews">
+              Show storefronts with reviews only
+            </label>
+          </div>
+          <div class="filter-field">
+            <label for="search-country">Filter by country code or name</label>
+            <input type="text" id="search-country" placeholder="e.g. US or Canada">
+          </div>
+        </div>
+        <div class="results-summary" id="results-summary"></div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>
+                  <button type="button" class="sortable" data-sort="country">
+                    Country
+                    <span class="sort-indicator" data-sort-indicator="country"></span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="sortable" data-sort="avg">
+                    Avg Rating (app)
+                    <span class="sort-indicator" data-sort-indicator="avg"></span>
+                  </button>
+                </th>
+                <th>
+                  <button type="button" class="sortable" data-sort="count">
+                    Rating Count
+                    <span class="sort-indicator" data-sort-indicator="count"></span>
+                  </button>
+                </th>
+                <th>Store Link</th>
+              </tr>
+            </thead>
+            <tbody id="results-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card exports">
+        <h2>Export</h2>
+        <div class="button-row">
+          <button id="download-csv" class="secondary" type="button">Download CSV</button>
+          <button id="download-json" class="secondary" type="button">Download JSON (with reviews)</button>
+        </div>
+      </section>
+
+      <section class="card" id="reviews-section">
+        <h2>Recent reviews (by country)</h2>
+        <p class="muted">Sample only — Apple’s legacy RSS feed may be missing or limited for some storefronts.</p>
+        <div id="reviews-container" class="reviews"></div>
+      </section>
+    </section>
+
+    <footer class="page-footer">
+      <p>Built for quick, global QA. Uses Apple's public iTunes Search API and legacy RSS feeds where available. No rankings — just ratings &amp; reviews.</p>
+    </footer>
+  </main>
+</body>
+</html>
