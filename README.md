@@ -12,11 +12,11 @@ Petron is a zero-backend explorer for Apple App Store ratings and reviews, organ
 1. **Install dependencies:** None. Everything is plain HTML/CSS/JS.
 2. **Run locally:**
    ```bash
-   python3 -m http.server 8000 -d frontend
+   python3 -m http.server 8000
    ```
    Then open [http://localhost:8000](http://localhost:8000).
 3. **Deploy to GitHub Pages:**
-   - Push the contents of `frontend/` to the `gh-pages` branch (or configure your repo to serve from `/frontend`).
+   - Serve the repository root via GitHub Pages (main branch, /(root)) or push the built files to a dedicated `gh-pages` branch.
    - GitHub Pages will deliver the static assets; no build step required.
 
 ## How It Works
