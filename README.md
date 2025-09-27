@@ -1,38 +1,44 @@
-# Petron — The Arbiter
+# Petron — App Store storefront explorer
 
-Petron is a zero-backend explorer for Apple App Store ratings and reviews, organised by storefront. Paste any public App Store URL or numeric track ID and Petron reports global ratings, volumes, and review sentiment across Apple’s catalog for you.
+**Live demo:** [https://johannes-ece.github.io/Petron/frontend/](https://johannes-ece.github.io/Petron/frontend/) (GitHub Pages)
 
-## Highlights
-- **App-wide & review-level insight:** See storefront average ratings, rating count, and dive into the text of individual reviews without leaving the page.
-- **Smart country selection:** Attempts to auto-discover supported storefronts, with a comprehensive fallback list if discovery fails in the browser.
-- **Rich analysis tools:** Interactive table with sorting, filtering, search, CSV/JSON export, and a color-coded map to understand global coverage at a glance.
-- **Pure front-end:** Uses JSONP for Apple’s iTunes Lookup API and direct fetches for the legacy RSS feed, so it runs entirely on GitHub Pages or any static host.
+Petron scans Apple’s App Store storefronts for any given app ID, collecting rating stats and recent reviews. Everything runs client-side—no backend, API keys, or build tools required.
 
-## Quick Start
-1. **Install dependencies:** None. Everything is plain HTML/CSS/JS.
-2. **Run locally:**
-   ```bash
-   python3 -m http.server 8000
-   ```
-   Then open [http://localhost:8000](http://localhost:8000).
-3. **Deploy to GitHub Pages:**
-   - Serve the repository root via GitHub Pages (main branch, /(root)) or push the built files to a dedicated `gh-pages` branch.
-   - GitHub Pages will deliver the static assets; no build step required.
+## Features
+- Pulls storefront averages, rating counts, and review excerpts in one pass.
+- Leaflet map colours storefronts by rating to surface strong or weak markets.
+- Filterable table view with CSV and JSON export.
+- Adjustable concurrency and a fallback storefront list to stay within Apple’s limits.
 
-## How It Works
-- **Lookup:** Calls the iTunes Search API via JSONP (`https://itunes.apple.com/lookup`) per storefront to gather average rating, rating count, and the track view URL.
-- **Reviews:** Requests Apple’s legacy RSS feed (`/rss/customerreviews/.../json`) to fetch up to 1,000 of the latest reviews per country (subject to Apple’s own truncation).
-- **Concurrency:** Requests are throttled in-browser to respect Apple’s rate limiting guidance.
-- **Mapping:** Leaflet + OpenStreetMap render a responsive choropleth—grey storefronts have no data, green-to-red conveys rating quality.
+## Quick start
+```bash
+git clone https://github.com/Johannes-ece/Petron.git
+cd Petron
+python3 -m http.server 8000
+```
+Visit [http://localhost:8000](http://localhost:8000) and paste an App Store URL or numeric ID.
 
-## Customisation
-- Edit `frontend/styles.css` to rebrand or tweak the glassmorphism UI.
-- Adjust defaults (max reviews, concurrency, fallback countries) directly in `frontend/app.js`.
-- Swap the basemap or legend logic inside `ensureMap` and `renderMap` if you prefer a different cartographic style.
+## Deployment
+- GitHub Pages: publish the `main` branch from the repository root (already wired up for this repo).
+- Any static host: serve the repo root; `index.html` references `frontend/app.js` and `frontend/styles.css` directly.
 
-## Limitations & Notes
-- Apple’s endpoints sometimes block storefront discovery in the browser; Petron automatically falls back to the curated list in `frontend/app.js`.
-- The legacy RSS feed is not available for every storefront; missing feeds simply result in empty review sections.
-- High-volume scans may still trigger throttling—dial back the concurrency slider when necessary.
+## Layout
+```
+Petron/
+├── index.html          # Entry point served by GitHub Pages
+├── frontend/
+│   ├── app.js          # UI logic and Apple API requests
+│   └── styles.css      # Layout and styling
+└── README.md
+```
 
-Enjoy roaming the App Store’s global sentiment. Petron arbiters the signal; you decide the verdict.
+## Apple data sources
+- Ratings & metadata: JSONP requests to `https://itunes.apple.com/lookup` per storefront.
+- Reviews: Apple’s legacy RSS feeds (`/rss/customerreviews/.../json`), usually capped at the newest ~1,000 entries.
+- Storefront discovery: Uses Apple’s `availableCountries` / `availableStorefronts` endpoints, with a static fallback list in `frontend/app.js` when discovery is blocked.
+
+## Notes
+- If discovery fails, switch the UI toggle to “fallback list only”.
+- Empty review sections usually mean Apple doesn’t expose that storefront’s feed.
+- Reduce the concurrency slider or review count if requests time out.
+- Reload if map tiles fail to load; OpenStreetMap occasionally throttles bursts of requests.
